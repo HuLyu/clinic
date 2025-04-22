@@ -2,7 +2,16 @@
 {% block content %}
 <h2>药品库存管理</h2>
 <p><a href="{{ url_for('new_drug') }}">＋ 新增药品</a></p>
-
+<!-- 显示 Flash 消息 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<ul class="flashes">
+    {% for category, message in messages %}
+    <li class="flash {{ category }}">{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
 <table border="1" cellpadding="8" cellspacing="0">
     <thead>
         <tr>
@@ -56,6 +65,22 @@
         </menu>
     </form>
 </dialog>
+
+<!-- CSS 用于居中对话框 -->
+<style>
+    dialog {
+        width: 300px;
+        /* 设置对话框的宽度 */
+        padding: 20px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        /* 使对话框居中 */
+        z-index: 1000;
+        /* 确保对话框在其他元素上方 */
+    }
+</style>
 
 <script>
     // 等 DOM 加载完毕再绑定事件

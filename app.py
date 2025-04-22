@@ -172,12 +172,12 @@ def adjust_drug(drug_id):
         flash("药品不存在", "danger")
         return redirect(url_for("inventory_drugs"))
     if delta < 0 and abs(delta) > drug.quantity:
-        flash("库存不足", "danger")
+        flash(f"{drug.name}库存不足", "danger")
         return redirect(url_for("inventory_drugs"))
     # 更新库存
     drug.quantity = max(drug.quantity + delta, 0)
     db.session.commit()
-    flash(f"库存已调整 {delta:+d}", "success")
+    flash(f"{drug.name}库存已调整 {delta:+d}", "success")
     return redirect(url_for("inventory_drugs"))
 
 
