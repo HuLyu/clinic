@@ -1,0 +1,127 @@
+/* 全局重置与基础 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f7f7f7;
+    color: #333;
+    padding: 20px;
+}
+
+a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* 容器 */
+header,
+footer {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    font-size: 2rem;
+}
+
+main {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 导航 */
+nav {
+    margin-top: 10px;
+}
+
+nav a {
+    margin: 0 10px;
+    font-size: 0.9rem;
+}
+
+/* 表单 */
+form {
+    margin: 20px 0;
+}
+
+form div {
+    margin-bottom: 15px;
+}
+
+form label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+form input[type="text"],
+form input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form button {
+    padding: 10px 20px;
+    border: none;
+    background: #0066cc;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background: #005bb5;
+}
+
+/* 列表 */
+ul {
+    list-style: none;
+}
+
+ul li {
+    margin: 10px 0;
+}
+
+/* Flash 消息 */
+.flashes {
+    margin-top: 15px;
+}
+
+.flash {
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.flash.success {
+    background-color: #e0f7e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.flash.danger {
+    background-color: #fdecea;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+}
+
+/* 页脚 */
+footer p {
+    font-size: 0.8rem;
+    color: #777;
+}

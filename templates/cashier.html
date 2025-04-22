@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>欢迎，收银员 {{ current_user.username }}</h2>
+<ul>
+    <li><a href="#">收费登记</a></li>
+    <li><a href="#">发票管理</a></li>
+    <li><a href="#">日结报表</a></li>
+    <!-- 更多收银功能 -->
+</ul>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>欢迎，库管 {{ current_user.username }}</h2>
+<ul>
+    <li><a href="#">查看药品库存</a></li>
+    <li><a href="#">库存预警管理</a></li>
+    <li><a href="#">入库/出库记录</a></li>
+    <!-- 更多库管功能 -->
+</ul>
+{% endblock %}

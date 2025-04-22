@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>欢迎，护士 {{ current_user.username }}</h2>
+<ul>
+    <li><a href="#">查看今天的预约</a></li>
+    <li><a href="#">更新患者基本信息</a></li>
+    <li><a href="#">记录生命体征</a></li>
+    <!-- 更多护士功能 -->
+</ul>
+{% endblock %}

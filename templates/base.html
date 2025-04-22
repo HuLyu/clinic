@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>诊所管理系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>诊所管理系统</h1>
+        {% if current_user.is_authenticated %}
+        <nav>
+            <a href="{{ url_for('logout') }}">注销 ({{ current_user.username }})</a>
+        </nav>
+        {% endif %}
+        <hr>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <hr>
+        <p>&copy; 2025 诊所管理系统</p>
+    </footer>
+</body>
+
+</html>

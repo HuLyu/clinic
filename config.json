@@ -1,0 +1,7 @@
+{
+    "host": "0.0.0.0",
+    "port": 5000,
+    "debug": true,
+    "db_file": "clinic.db",
+    "secret_key": "e2db1928e0290f50fabbf7012641a658fb8ac6e29c6984840882fcd091de9ae4"
+}

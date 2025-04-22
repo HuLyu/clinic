@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>欢迎，医生 {{ current_user.username }}</h2>
+<ul>
+    <li><a href="#">查看患者列表</a></li>
+    <li><a href="#">新建诊疗记录</a></li>
+    <li><a href="#">开具处方</a></li>
+    <!-- 更多医生功能 -->
+</ul>
+{% endblock %}

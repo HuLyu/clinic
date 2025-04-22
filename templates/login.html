@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>登录</h2>
+<form method="post" action="{{ url_for('login') }}">
+    <div>
+        <label>用户名：<input type="text" name="username" required></label>
+    </div>
+    <div>
+        <label>密码：<input type="password" name="password" required></label>
+    </div>
+    <div>
+        <button type="submit">登录</button>
+    </div>
+</form>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<ul class="flashes">
+    {% for category, msg in messages %}
+    <li class="flash {{ category }}">{{ msg }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+{% endblock %}
