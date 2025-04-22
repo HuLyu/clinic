@@ -54,6 +54,57 @@ class Drug(db.Model):
     cost = db.Column(db.Numeric(10, 2), nullable=False)  # 成本
 
 
+class Patient(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    phone = db.Column(db.String(15), nullable=False)
+    id_card = db.Column(db.String(18), unique=True, nullable=False)
+
+
+# 病历表
+class MedicalRecord(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey("patient.id"), nullable=False)
+    record_time = db.Column(db.DateTime, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    gender = db.Column(db.String(10), nullable=False)
+    medical_history = db.Column(db.Text, nullable=False)
+    patient = db.relationship(
+        "Patient", backref=db.backref("medical_records", lazy=True)
+    )
+
+
+# 处方表
+class Prescription(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey("patient.id"), nullable=False)
+    prescription_time = db.Column(db.DateTime, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    total_price = db.Column(db.Numeric(10, 2), nullable=False)
+    patient = db.relationship("Patient", backref=db.backref("prescriptions", lazy=True))
+
+
+# 处方项目表
+class PrescriptionItem(db.Model):
+    prescription_item_id = db.Column(
+        db.Integer, primary_key=True
+    )  # 处方项目 ID，作为主键
+    prescription_id = db.Column(
+        db.Integer, db.ForeignKey("prescription.id"), nullable=False
+    )
+    drug_name = db.Column(db.String(100), nullable=False)
+    dosage = db.Column(db.Numeric(10, 2), nullable=False)
+    unit = db.Column(db.String(20), nullable=False)
+    packaging = db.Column(db.String(50), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    prescription = db.relationship(
+        "Prescription", backref=db.backref("items", lazy=True)
+    )
+
+
 # 初始化数据库并创建示例用户（仅开发用）
 with app.app_context():
     db.create_all()
