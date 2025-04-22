@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>药品库存管理</h2>
+<p><a href="{{ url_for('new_drug') }}">＋ 新增药品</a></p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>名称</th>
+            <th>品牌</th>
+            <th>剂量</th>
+            <th>单位</th>
+            <th>包装</th>
+            <th>库存</th>
+            <th>售价</th>
+            <th>成本</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in drugs %}
+        <tr>
+            <td>{{ d.id }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.brand }}</td>
+            <td>{{ d.dosage }}</td>
+            <td>{{ d.drug_unit }}</td>
+            <td>{{ d.dosage_unit }}</td>
+            <td>{{ d.quantity }}</td>
+            <td>{{ '%.2f'|format(d.price) }}</td>
+            <td>{{ '%.2f'|format(d.cost) }}</td>
+            <td>
+                <button class="manage-btn" data-id="{{ d.id }}" data-name="{{ d.name|e }}" data-qty="{{ d.quantity }}">
+                    管理库存
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<dialog id="manageDialog">
+    <form method="post" id="manageForm">
+        <h3>管理库存 – <span id="drugLabel"></span></h3>
+        <div>当前库存：<span id="currentQty"></span></div>
+        <div>
+            调整数量：<input type="number" name="delta" value="0">
+        </div>
+        <div>
+            <label><input type="checkbox" name="delete"> 删除此药品</label>
+        </div>
+        <menu>
+            <button type="submit">确认</button>
+            <button type="button" onclick="document.getElementById('manageDialog').close();">取消</button>
+        </menu>
+    </form>
+</dialog>
+
+<script>
+    // 等 DOM 加载完毕再绑定事件
+    document.addEventListener('DOMContentLoaded', () => {
+        const dialog = document.getElementById('manageDialog');
+        const form = document.getElementById('manageForm');
+        const label = document.getElementById('drugLabel');
+        const qtyEl = document.getElementById('currentQty');
+
+        document.querySelectorAll('.manage-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.id;
+                const name = btn.dataset.name;
+                const qty = btn.dataset.qty;
+
+                label.textContent = name;
+                qtyEl.textContent = qty;
+                form.delete.checked = false;
+                form.action = ''; // 重置
+
+                dialog.showModal();
+
+                form.onsubmit = e => {
+                    // 根据是否勾选删除，动态设置 action
+                    if (form.delete.checked) {
+                        form.action = `/inventory/delete/${id}`;
+                    } else {
+                        form.action = `/inventory/adjust/${id}`;
+                    }
+                    dialog.close();
+                    // 让表单正常提交
+                };
+            });
+        });
+    });
+</script>
+{% endblock %}

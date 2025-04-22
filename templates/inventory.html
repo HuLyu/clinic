@@ -1,10 +1,6 @@
+<!-- templates/inventory.html -->
 {% extends 'base.html' %}
 {% block content %}
-<h2>欢迎，库管 {{ current_user.username }}</h2>
-<ul>
-    <li><a href="#">查看药品库存</a></li>
-    <li><a href="#">库存预警管理</a></li>
-    <li><a href="#">入库/出库记录</a></li>
-    <!-- 更多库管功能 -->
-</ul>
+<h2>库管页面</h2>
+<p><a href="{{ url_for('inventory_drugs') }}">管理药品库存</a></p>
 {% endblock %}
