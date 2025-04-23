@@ -344,12 +344,29 @@ def create_prescription():
         for drug in drugs
     }
     drug_info_json = json.dumps(drug_info, ensure_ascii=False)
+    # 接收 copy_from
+    copy_from = request.args.get("copy_from", type=int)
+    copy_items = []
+    if copy_from:
+        orig = Prescription.query.get(copy_from)
+        if orig:
+            for it in orig.items:
+                copy_items.append(
+                    {
+                        "drug_name": it.drug_name,
+                        "dosage": float(it.dosage),
+                        "unit": it.unit,
+                        "quantity": it.quantity,
+                        "packaging": it.packaging,
+                    }
+                )
 
     return render_template(
         "create_prescription.html",
         patients=patients,
         drugs=drugs,
         drug_info=drug_info_json,
+        copy_items=copy_items,
     )
 
 
@@ -455,7 +472,7 @@ def prescription_detail(prescription_id):
             "id": pres.id,
             "patient_name": pres.patient.name,
             "prescription_time": pres.prescription_time.strftime("%Y-%m-%d %H:%M"),
-            "total_price": float(pres.total_price) if pres.total_price else null,
+            "total_price": float(pres.total_price) if pres.total_price else 0,
             "items": items,
         }
     )

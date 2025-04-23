@@ -1,10 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
+<nav>
+  {# 如果已登录且是医生，显示「医生主页面」#}
+  {% if current_user.is_authenticated and current_user.role == 'doctor' %}
+  <a href="{{ url_for('doctor_page') }}">医生主页面</a> |
+  {% endif %}
+  <a href="{{ url_for('logout') }}">注销 ({{ current_user.username }})</a>
+</nav>
 {% if patient %}
 <h2>患者：{{ patient.name }} （ID: {{ patient.id }}）的病历</h2>
 {% else %}
 <h2>所有病历记录</h2>
 {% endif %}
+
 <p>
   <a href="{{ url_for('index') }}">« 返回患者列表</a>
   {% if patient %}

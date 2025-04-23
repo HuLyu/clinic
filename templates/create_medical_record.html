@@ -1,7 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>新建诊疗记录</h2>
-
+<nav>
+    {# 如果已登录且是医生，显示「医生主页面」#}
+    {% if current_user.is_authenticated and current_user.role == 'doctor' %}
+    <a href="{{ url_for('doctor_page') }}">医生主页面</a> |
+    {% endif %}
+    <a href="{{ url_for('logout') }}">注销 ({{ current_user.username }})</a>
+</nav>
 <form method="POST">
     <div>
         <label for="patient_id">选择患者：</label>

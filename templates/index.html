@@ -9,6 +9,13 @@
 
 <body>
     <h2>患者信息列表</h2>
+    <nav>
+        {# 如果已登录且是医生，显示「医生主页面」#}
+        {% if current_user.is_authenticated and current_user.role == 'doctor' %}
+        <a href="{{ url_for('doctor_page') }}">医生主页面</a> |
+        {% endif %}
+        <a href="{{ url_for('logout') }}">注销 ({{ current_user.username }})</a>
+    </nav>
 
     <!-- 搜索栏：根据手机号后四位 -->
     <form method="get" action="{{ url_for('index') }}" style="margin-bottom:16px;">

@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>添加患者档案</title>
 </head>
+<nav>
+    {# 如果已登录且是医生，显示「医生主页面」#}
+    {% if current_user.is_authenticated and current_user.role == 'doctor' %}
+    <a href="{{ url_for('doctor_page') }}">医生主页面</a> |
+    {% endif %}
+    <a href="{{ url_for('logout') }}">注销 ({{ current_user.username }})</a>
+</nav>
 
 <body>
     <h2>建立新的患者档案</h2>

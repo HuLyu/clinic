@@ -1,5 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
+<nav>
+    {# 如果已登录且是医生，显示「医生主页面」#}
+    {% if current_user.is_authenticated and current_user.role == 'doctor' %}
+    <a href="{{ url_for('doctor_page') }}">医生主页面</a> |
+    {% endif %}
+    <a href="{{ url_for('logout') }}">注销 ({{ current_user.username }})</a>
+</nav>
 {% if patient %}
 <h2>患者：{{ patient.name }} （ID: {{ patient.id }}）的处方</h2>
 {% else %}
@@ -97,9 +104,14 @@
                         tbody.appendChild(tr);
                     });
                     // “复制处方”按钮
+                    // 开处方页面的基础 URL（由 Flask 生成）
+                    const createUrl = "{{ url_for('create_prescription') }}";
+
+                    // “复制处方”按钮
                     const copyBtn = document.getElementById('copyPrescription');
                     copyBtn.onclick = () => {
-                        window.location.href = `/create_prescription?copy_from=${data.id}`;
+                        // 带上 copy_from 参数
+                        window.location.href = `${createUrl}?copy_from=${data.id}`;
                     };
                     document.getElementById('prescriptionModal').style.display = 'block';
                 });
