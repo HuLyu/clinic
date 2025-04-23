@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if patient %}
+<h2>患者：{{ patient.name }} （ID: {{ patient.id }}）的病历</h2>
+{% else %}
+<h2>所有病历记录</h2>
+{% endif %}
+<p>
+  <a href="{{ url_for('index') }}">« 返回患者列表</a>
+  {% if patient %}
+  | <a href="{{ url_for('view_patient_prescriptions', patient_id=patient.id) }}">查看该患者处方</a>
+  {% endif %}
+</p>
+<table border="1" cellpadding="8" cellspacing="0">
+  <thead>
+    <tr>
+      <th>病历ID</th>
+      {% if not patient %}
+      <th>患者姓名</th>
+      {% endif %}
+      <th>年龄</th>
+      <th>性别</th>
+      <th>诊疗时间</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for record in medical_records %}
+    <tr>
+      <td>{{ record.id }}</td>
+      {% if not patient %}
+      <!-- 全部记录时，从关联对象获得患者名 -->
+      <td>{{ record.patient.name }}</td>
+      {% endif %}
+      <td>{{ record.age }}</td>
+      <td>{{ record.gender }}</td>
+      <td>{{ record.record_time.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>
+        <a href="{{ url_for('edit_medical_record', record_id=record.id) }}">
+          <button type="button">查看／编辑病史</button>
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加患者档案</title>
+</head>
+
+<body>
+    <h2>建立新的患者档案</h2>
+
+    <!-- 显示 Flash 消息 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="flashes">
+        {% for category, message in messages %}
+        <li class="flash {{ category }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <div>
+            <label for="name">姓名：</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div>
+            <label for="age">年龄：</label>
+            <input type="number" id="age" name="age" required>
+        </div>
+        <div>
+            <label for="phone">手机号：</label>
+            <input type="text" id="phone" name="phone" required>
+        </div>
+        <div>
+            <label for="id_card">身份证号：</label>
+            <input type="text" id="id_card" name="id_card" required>
+        </div>
+        <button type="submit">提交</button>
+    </form>
+
+    <a href="{{ url_for('index') }}">返回患者列表</a>
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>新建诊疗记录</h2>
+
+<form method="POST">
+    <div>
+        <label for="patient_id">选择患者：</label>
+        <select name="patient_id" id="patient_id" required>
+            {% for patient in patients %}
+            <option value="{{ patient.id }}">{{ patient.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="record_time">诊疗时间：</label>
+        <input type="datetime-local" name="record_time" id="record_time" required>
+    </div>
+    <div>
+        <label for="gender">性别：</label>
+        <select name="gender" id="gender" required>
+            <option value="男">男</option>
+            <option value="女">女</option>
+        </select>
+    </div>
+    <div>
+        <label for="medical_history">病史：</label><br>
+        <textarea name="medical_history" id="medical_history" required
+            style="width:50vw; height:50vh; padding:8px; font-size:1rem;"></textarea>
+    </div>
+    <button type="submit">提交</button>
+</form>
+{% endblock %}

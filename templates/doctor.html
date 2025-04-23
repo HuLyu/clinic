@@ -1,10 +1,30 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>欢迎，医生 {{ current_user.username }}</h2>
+
+<!-- 1) 搜索表单，提交到 index -->
+<form method="get" action="{{ url_for('index') }}" style="margin-bottom:16px;">
+    <label for="phone_last4">按手机号后4位查患者：</label>
+    <input type="text" id="phone_last4" name="phone_last4" value="" maxlength="4" pattern="\d{4}" placeholder="如 1234"
+        required>
+    <button type="submit">搜索</button>
+</form>
+
+<!-- 新增患者档案 -->
+<p>
+    <a href="{{ url_for('add_patient') }}">＋ 添加患者档案</a>
+</p>
+
+<!-- 查看患者列表（可带搜索参数） -->
+<p>
+    <a href="{{ url_for('index') }}">查看患者列表</a>
+</p>
+
+<!-- 2) 其他医生功能入口 -->
 <ul>
-    <li><a href="#">查看患者列表</a></li>
-    <li><a href="#">新建诊疗记录</a></li>
-    <li><a href="#">开具处方</a></li>
-    <!-- 更多医生功能 -->
+    <li><a href="{{ url_for('create_medical_record') }}">新建诊疗记录</a></li>
+    <li><a href="{{ url_for('create_prescription') }}">开具处方</a></li>
+    <li><a href="{{ url_for('view_all_medical_records') }}">查看所有病历</a></li>
+    <li><a href="{{ url_for('view_all_prescriptions') }}">查看所有处方</a></li>
 </ul>
 {% endblock %}

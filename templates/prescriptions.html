@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if patient %}
+<h2>患者：{{ patient.name }} （ID: {{ patient.id }}）的处方</h2>
+{% else %}
+<h2>所有处方记录</h2>
+{% endif %}
+<p>
+    <a href="{{ url_for('index') }}">« 返回患者列表</a>
+    {% if patient %}
+    | <a href="{{ url_for('view_patient_medical_records', patient_id=patient.id) }}">查看该患者病历</a>
+    {% endif %}
+</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+        <tr>
+            <th>处方ID</th>
+            {% if not patient %}<th>患者姓名</th>{% endif %}
+            <th>开方时间</th>
+            <th>总价</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pres in prescriptions %}
+        <tr>
+            <td>{{ pres.id }}</td>
+            {% if not patient %}<td>{{ pres.patient.name }}</td>{% endif %}
+            <td>{{ pres.prescription_time.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ pres.total_price or '—' }}</td>
+            <td>
+                <button class="btn-view-detail" data-id="{{ pres.id }}" type="button">详情</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal 结构 -->
+<div id="prescriptionModal" style="
+      display:none;
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5);
+    ">
+    <div style="
+        background:#fff; margin:5% auto; padding:20px;
+        width:80%; max-width:600px; position:relative;
+      ">
+        <span id="modalClose" style="
+          position:absolute; top:10px; right:10px;
+          cursor:pointer; font-size:1.2rem;
+        ">&times;</span>
+        <h3>处方详情 #<span id="modalId"></span></h3>
+        <p>患者：<span id="modalPatient"></span></p>
+        <p>时间：<span id="modalTime"></span></p>
+        <p>总价：<span id="modalTotal"></span></p>
+        <table border="1" cellpadding="4" cellspacing="0" style="width:100%; margin-top:10px;">
+            <thead>
+                <tr>
+                    <th>药品</th>
+                    <th>剂量</th>
+                    <th>单位</th>
+                    <th>数量</th>
+                    <th>包装</th>
+                </tr>
+            </thead>
+            <tbody id="modalItems"></tbody>
+        </table>
+        <button id="copyPrescription" style="margin-top:12px;" type="button">复制处方</button>
+    </div>
+</div>
+
+<script>
+    // 打开 Modal
+    document.querySelectorAll('.btn-view-detail')
+        .forEach(btn => btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            fetch(`/prescription/${id}/detail`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('modalId').textContent = data.id;
+                    document.getElementById('modalPatient').textContent = data.patient_name;
+                    document.getElementById('modalTime').textContent = data.prescription_time;
+                    document.getElementById('modalTotal').textContent = data.total_price ?? '—';
+                    const tbody = document.getElementById('modalItems');
+                    tbody.innerHTML = '';
+                    data.items.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                <td>${item.drug_name}</td>
+                <td>${item.dosage}</td>
+                <td>${item.unit}</td>
+                <td>${item.quantity}</td>
+                <td>${item.packaging}</td>
+              `;
+                        tbody.appendChild(tr);
+                    });
+                    // “复制处方”按钮
+                    const copyBtn = document.getElementById('copyPrescription');
+                    copyBtn.onclick = () => {
+                        window.location.href = `/create_prescription?copy_from=${data.id}`;
+                    };
+                    document.getElementById('prescriptionModal').style.display = 'block';
+                });
+        }));
+
+    // 关闭 Modal
+    document.getElementById('modalClose').onclick = () => {
+        document.getElementById('prescriptionModal').style.display = 'none';
+    };
+    window.onclick = e => {
+        if (e.target.id === 'prescriptionModal') {
+            e.target.style.display = 'none';
+        }
+    };
+</script>
+{% endblock %}

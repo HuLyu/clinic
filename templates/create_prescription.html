@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>开具处方</h2>
+
+<form method="POST">
+    <!-- 患者 + 时间字段不变 -->
+    <div>
+        <label>选择患者：</label>
+        <select name="patient_id" required>
+            {% for patient in patients %}
+            <option value="{{ patient.id }}">{{ patient.name }} (ID:{{ patient.id }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label>处方时间：</label>
+        <input type="datetime-local" name="prescription_time" required>
+    </div>
+
+    <!-- datalist 放在外面，只需定义一次 -->
+    <datalist id="drug-list">
+        {% for drug in drugs %}
+        <!-- value 是药品名，label里可展示更多信息 -->
+        <option value="{{ drug.name }}"
+            label="{{ drug.brand }} {{ drug.dosage }}{{ drug.drug_unit }} (包装:{{ drug.dosage_unit }})"></option>
+        {% endfor %}
+    </datalist>
+
+    <h3>处方项目</h3>
+    <div id="prescription-items">
+        <div class="prescription-item" style="margin-bottom:8px;">
+            <!-- 1. 药品名称用 input+list 实现可输入联想 -->
+            <label>药品名称：</label>
+            <input list="drug-list" name="drug_name" class="drug-name" placeholder="输入首字母筛选" required>
+
+            <!-- 2. 剂量 -->
+            <label>剂量：</label>
+            <input type="number" step="0.01" name="dosage" class="dosage" required>
+
+            <!-- 3. 剂量单位 -->
+            <label>剂量单位：</label>
+            <select name="unit" class="unit" required>
+                <option value="">请选择单位</option>
+                <option value="mg">mg</option>
+                <option value="g">g</option>
+                <option value="ml">ml</option>
+            </select>
+
+            <!-- 4. 数量 -->
+            <label>数量：</label>
+            <input type="number" name="quantity" class="quantity" min="1" required>
+
+            <!-- 5. 包装 -->
+            <label>包装：</label>
+            <select name="packaging" class="packaging" required>
+                <option value="">请选择包装</option>
+                <option value="片">片</option>
+                <option value="支">支</option>
+                <option value="盒">盒</option>
+            </select>
+        </div>
+    </div>
+
+    <button type="button" onclick="addPrescriptionItem()">+ 添加处方项目</button>
+    <button type="submit">提交</button>
+</form>
+
+<script>
+    // 1. 从后端渲染好的 JSON 中读取
+    const drugInfoStr = '{{ drug_info|safe }}';
+    const drugInfo = JSON.parse(drugInfoStr);
+
+    // 2. 根据药品名称变化，自动填入三项：剂量、单位、包装
+    function onDrugChange(inputEl) {
+        const row = inputEl.closest('.prescription-item');
+        const name = inputEl.value;
+        const info = drugInfo[name];
+        if (!info) return;
+        row.querySelector('.dosage').value = info.dosage;
+        row.querySelector('.unit').value = info.unit;
+        row.querySelector('.packaging').value = info.packaging;
+    }
+
+    // 3. 给每行绑定事件
+    function bindEvents(row) {
+        const drugInput = row.querySelector('.drug-name');
+        drugInput.addEventListener('input', () => onDrugChange(drugInput));
+    }
+
+    // 初始化现有那一行
+    document.querySelectorAll('.prescription-item').forEach(bindEvents);
+
+    // 动态新增行
+    function addPrescriptionItem() {
+        const html = `
+      <div class="prescription-item" style="margin-bottom:8px;">
+        <label>药品名称：</label>
+        <input list="drug-list" name="drug_name" class="drug-name" placeholder="输入首字母筛选" required>
+
+        <label>剂量：</label>
+        <input type="number" step="0.01" name="dosage" class="dosage" required>
+
+        <label>剂量单位：</label>
+        <select name="unit" class="unit" required>
+          <option value="">请选择单位</option>
+          <option value="mg">mg</option>
+          <option value="g">g</option>
+          <option value="ml">ml</option>
+        </select>
+
+        <label>数量：</label>
+        <input type="number" name="quantity" class="quantity" min="1" required>
+
+        <label>包装：</label>
+        <select name="packaging" class="packaging" required>
+          <option value="">请选择包装</option>
+          <option value="片">片</option>
+          <option value="支">支</option>
+          <option value="盒">盒</option>
+        </select>
+      </div>`;
+        const container = document.getElementById('prescription-items');
+        container.insertAdjacentHTML('beforeend', html);
+        bindEvents(container.lastElementChild);
+    }
+</script>
+{% endblock %}

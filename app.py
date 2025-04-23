@@ -1,6 +1,7 @@
 import os, json
+from datetime import datetime
 from decimal import Decimal
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
     LoginManager,
@@ -83,7 +84,7 @@ class Prescription(db.Model):
     prescription_time = db.Column(db.DateTime, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     age = db.Column(db.Integer, nullable=False)
-    total_price = db.Column(db.Numeric(10, 2), nullable=False)
+    total_price = db.Column(db.Numeric(10, 2))
     patient = db.relationship("Patient", backref=db.backref("prescriptions", lazy=True))
 
 
@@ -243,6 +244,221 @@ def delete_drug(drug_id):
     db.session.commit()
     flash(f"已删除药品 “{drug.name}”", "success")
     return redirect(url_for("inventory_drugs"))
+
+
+@app.route("/", methods=["GET"])
+@login_required
+def index():
+    # 读取 doctor 页面提交的 ?phone_last4=xxxx
+    phone_last4 = request.args.get("phone_last4", "").strip()
+    if phone_last4:
+        patients = Patient.query.filter(Patient.phone.endswith(phone_last4)).all()
+    else:
+        patients = Patient.query.all()
+    return render_template(
+        "index.html",
+        patients=patients,
+        phone_last4=phone_last4,  # 方便 index.html 如果想保留输入值
+    )
+
+
+@app.route("/create_medical_record", methods=["GET", "POST"])
+@login_required
+def create_medical_record():
+    if request.method == "POST":
+        patient_id = request.form["patient_id"]
+        record_time_str = request.form["record_time"]
+        gender = request.form["gender"]
+        medical_history = request.form["medical_history"]
+        record_time = datetime.strptime(record_time_str, "%Y-%m-%dT%H:%M")
+        patient = Patient.query.get(patient_id)
+        if patient:
+            new_record = MedicalRecord(
+                patient_id=patient.id,
+                record_time=record_time,
+                name=patient.name,
+                age=patient.age,
+                gender=gender,
+                medical_history=medical_history,
+            )
+            db.session.add(new_record)
+            db.session.commit()
+            flash("诊疗记录已成功创建！", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("未找到患者信息！", "error")
+
+    patients = Patient.query.all()
+    return render_template("create_medical_record.html", patients=patients)
+
+
+@app.route("/create_prescription", methods=["GET", "POST"])
+@login_required
+def create_prescription():
+    if request.method == "POST":
+        patient_id = request.form["patient_id"]
+        prescription_time_str = request.form["prescription_time"]
+        prescription_time = datetime.strptime(prescription_time_str, "%Y-%m-%dT%H:%M")
+        patient = Patient.query.get(patient_id)
+        if patient:
+            new_prescription = Prescription(
+                patient_id=patient.id,
+                prescription_time=prescription_time,
+                name=patient.name,
+                age=patient.age,
+            )
+            db.session.add(new_prescription)
+            db.session.commit()
+            items_data = request.form.getlist("drug_name")
+            for i in range(len(items_data)):
+                drug_name = items_data[i]
+                dosage = request.form.getlist("dosage")[i]
+                unit = request.form.getlist("unit")[i]
+                packaging = request.form.getlist("packaging")[i]
+                quantity = request.form.getlist("quantity")[i]
+
+                new_item = PrescriptionItem(
+                    prescription_id=new_prescription.id,
+                    drug_name=drug_name,
+                    dosage=dosage,
+                    unit=unit,
+                    packaging=packaging,
+                    quantity=quantity,
+                )
+                db.session.add(new_item)
+
+            db.session.commit()
+            flash("处方已成功开具！", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("未找到患者信息！", "error")
+
+    patients = Patient.query.all()
+    drugs = Drug.query.all()  # 新增
+    drug_info = {
+        drug.name: {
+            "dosage": float(drug.dosage),
+            "unit": drug.drug_unit,
+            "packaging": drug.dosage_unit,
+        }
+        for drug in drugs
+    }
+    drug_info_json = json.dumps(drug_info, ensure_ascii=False)
+
+    return render_template(
+        "create_prescription.html",
+        patients=patients,
+        drugs=drugs,
+        drug_info=drug_info_json,
+    )
+
+
+@app.route("/add_patient", methods=["GET", "POST"])
+def add_patient():
+    if request.method == "POST":
+        name = request.form["name"]
+        age = request.form["age"]
+        phone = request.form["phone"]
+        id_card = request.form["id_card"]
+
+        new_patient = Patient(name=name, age=age, phone=phone, id_card=id_card)
+        db.session.add(new_patient)
+        db.session.commit()
+
+        flash("患者档案已成功创建！", "success")
+        return redirect(url_for("index"))
+
+    return render_template("add_patient.html")
+
+
+@app.route("/view_all_medical_records")
+@login_required
+def view_all_medical_records():
+    records = MedicalRecord.query.all()
+    return render_template(
+        "medical_records.html", medical_records=records, patient=None
+    )
+
+
+# 某患者病历
+@app.route("/patient/<int:patient_id>/medical_records")
+@login_required
+def view_patient_medical_records(patient_id):
+    patient = Patient.query.get_or_404(patient_id)
+    records = MedicalRecord.query.filter_by(patient_id=patient_id).all()
+    return render_template(
+        "medical_records.html", medical_records=records, patient=patient
+    )
+
+
+# 全部处方
+@app.route("/view_all_prescriptions")
+@login_required
+def view_all_prescriptions():
+    prescs = Prescription.query.all()
+    return render_template("prescriptions.html", prescriptions=prescs, patient=None)
+
+
+# 某患者处方
+@app.route("/patient/<int:patient_id>/prescriptions")
+@login_required
+def view_patient_prescriptions(patient_id):
+    patient = Patient.query.get_or_404(patient_id)
+    prescs = Prescription.query.filter_by(patient_id=patient_id).all()
+    return render_template("prescriptions.html", prescriptions=prescs, patient=patient)
+
+
+@app.route("/medical_record/<int:record_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_medical_record(record_id):
+    record = MedicalRecord.query.get_or_404(record_id)
+
+    # 可选：只允许医生修改
+    if current_user.role != "doctor":
+        return "无权限访问", 403
+
+    if request.method == "POST":
+        # 获取表单中的新病史
+        new_history = request.form.get("medical_history", "").strip()
+        if not new_history:
+            flash("病史内容不能为空", "danger")
+        else:
+            record.medical_history = new_history
+            # 更新诊疗时间为现在
+            record.record_time = datetime.utcnow()
+            db.session.commit()
+            flash("病史已更新", "success")
+            # 返回到该患者的病历列表
+            return redirect(
+                url_for("view_patient_medical_records", patient_id=record.patient_id)
+            )
+
+    return render_template("edit_medical_record.html", record=record)
+
+
+@app.route("/prescription/<int:prescription_id>/detail")
+@login_required
+def prescription_detail(prescription_id):
+    pres = Prescription.query.get_or_404(prescription_id)
+    items = [
+        {
+            "drug_name": item.drug_name,
+            "dosage": float(item.dosage),
+            "unit": item.unit,
+            "quantity": item.quantity,
+            "packaging": item.packaging,
+        }
+        for item in pres.items
+    ]
+    return jsonify(
+        {
+            "id": pres.id,
+            "patient_name": pres.patient.name,
+            "prescription_time": pres.prescription_time.strftime("%Y-%m-%d %H:%M"),
+            "total_price": float(pres.total_price) if pres.total_price else null,
+            "items": items,
+        }
+    )
 
 
 if __name__ == "__main__":

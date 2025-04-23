@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>患者列表</title>
+</head>
+
+<body>
+    <h2>患者信息列表</h2>
+
+    <!-- 搜索栏：根据手机号后四位 -->
+    <form method="get" action="{{ url_for('index') }}" style="margin-bottom:16px;">
+        <label for="phone_last4">手机号后四位：</label>
+        <input type="text" id="phone_last4" name="phone_last4" value="{{ phone_last4 }}" maxlength="4" pattern="\d{4}"
+            placeholder="如 1234" title="请输入 4 位数字">
+        <button type="submit">搜索</button>
+        {% if phone_last4 %}
+        <a href="{{ url_for('index') }}">清除</a>
+        {% endif %}
+    </form>
+
+    <!-- 新增患者档案按钮 -->
+    <p><a href="{{ url_for('add_patient') }}">＋ 添加患者档案</a></p>
+
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>姓名</th>
+                <th>年龄</th>
+                <th>手机号</th>
+                <th>身份证号</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td>{{ patient.id }}</td>
+                <td>{{ patient.name }}</td>
+                <td>{{ patient.age }}</td>
+                <td>{{ patient.phone }}</td>
+                <td>{{ patient.id_card }}</td>
+                <td>
+                    <a href="{{ url_for('view_patient_medical_records', patient_id=patient.id) }}">
+                        <button type="button">查看病例</button>
+                    </a>
+                    <a href="{{ url_for('view_patient_prescriptions', patient_id=patient.id) }}">
+                        <button type="button">查看处方</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>

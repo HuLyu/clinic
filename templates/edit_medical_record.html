@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>编辑病历记录 #{{ record.id }}</h2>
+<p>患者：{{ record.patient.name }} （ID: {{ record.patient_id }}）</p>
+<form method="post">
+    <div>
+        <label for="medical_history">病史：</label><br>
+        <textarea name="medical_history" id="medical_history" rows="10"
+            style="width:100%;">{{ record.medical_history }}</textarea>
+    </div>
+    <p>
+        <button type="submit">保存更新</button>
+        <a href="{{ url_for('view_patient_medical_records', patient_id=record.patient_id) }}">
+            <button type="button">取消</button>
+        </a>
+    </p>
+</form>
+{% endblock %}
