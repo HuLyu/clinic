@@ -85,6 +85,7 @@ class Prescription(db.Model):
     name = db.Column(db.String(100), nullable=False)
     age = db.Column(db.Integer, nullable=False)
     total_price = db.Column(db.Numeric(10, 2))
+    is_paid = db.Column(db.Boolean, nullable=True, default=False)
     patient = db.relationship("Patient", backref=db.backref("prescriptions", lazy=True))
 
 
@@ -326,9 +327,16 @@ def create_prescription():
                     quantity=quantity,
                 )
                 db.session.add(new_item)
-
+            total = Decimal("0.00")
+            for item in new_prescription.items:
+                drug = Drug.query.filter_by(name=item.drug_name).first()
+            if drug:
+                qty = int(item.quantity)
+                price = Decimal(drug.price)  # 确保 price 是 Decimal
+                total += price * qty
+            new_prescription.total_price = total
             db.session.commit()
-            flash("处方已成功开具！", "success")
+            flash("处方已保存，总价：" + str(total), "success")
             return redirect(url_for("index"))
         else:
             flash("未找到患者信息！", "error")
@@ -476,6 +484,30 @@ def prescription_detail(prescription_id):
             "items": items,
         }
     )
+
+
+@app.route("/cashier/charge", methods=["GET"])
+@login_required
+def cashier_charge():
+    if current_user.role != "cashier":
+        return "无权限访问", 403
+    # 查询 is_paid 为 False 或 NULL 的处方
+    prescs = Prescription.query.filter(
+        (Prescription.is_paid == False) | (Prescription.is_paid.is_(None))
+    ).all()
+    return render_template("cashier_charge.html", prescriptions=prescs)
+
+
+@app.route("/cashier/charge/<int:prescription_id>", methods=["POST"])
+@login_required
+def cashier_charge_do(prescription_id):
+    if current_user.role != "cashier":
+        return "无权限访问", 403
+    pres = Prescription.query.get_or_404(prescription_id)
+    pres.is_paid = True
+    db.session.commit()
+    flash(f"处方 #{prescription_id} 标记为已缴费", "success")
+    return redirect(url_for("cashier_charge"))
 
 
 if __name__ == "__main__":

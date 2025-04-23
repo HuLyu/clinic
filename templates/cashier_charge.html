@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>处方收费</h2>
+<p><a href="{{ url_for('cashier_page') }}">« 返回收银首页</a></p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+        <tr>
+            <th>处方ID</th>
+            <th>患者姓名</th>
+            <th>开方时间</th>
+            <th>总价</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pres in prescriptions %}
+        <tr>
+            <td>{{ pres.id }}</td>
+            <td>{{ pres.patient.name }}</td>
+            <td>{{ pres.prescription_time.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ pres.total_price or '—' }}</td>
+            <td>
+                <button class="btn-view-detail" data-id="{{ pres.id }}" type="button">详情</button>
+                <form method="POST" action="{{ url_for('cashier_charge_do', prescription_id=pres.id) }}"
+                    style="display:inline;">
+                    <button type="submit">标记已缴费</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5">暂无待缴费处方</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal for prescription detail -->
+<div id="prescriptionModal" style="
+      display:none;
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5);
+    ">
+    <div style="
+        background:#fff; margin:5% auto; padding:20px;
+        width:80%; max-width:600px; position:relative;
+      ">
+        <span id="modalClose" style="
+          position:absolute; top:10px; right:10px;
+          cursor:pointer; font-size:1.2rem;
+        ">&times;</span>
+        <h3>处方详情 #<span id="modalId"></span></h3>
+        <p>患者：<span id="modalPatient"></span></p>
+        <p>时间：<span id="modalTime"></span></p>
+        <p>总价：<span id="modalTotal"></span></p>
+        <table border="1" cellpadding="4" cellspacing="0" style="width:100%; margin-top:10px;">
+            <thead>
+                <tr>
+                    <th>药品</th>
+                    <th>剂量</th>
+                    <th>单位</th>
+                    <th>数量</th>
+                    <th>包装</th>
+                </tr>
+            </thead>
+            <tbody id="modalItems"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 打开 Modal 并加载详情
+    document.querySelectorAll('.btn-view-detail').forEach(btn =>
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            fetch(`/prescription/${id}/detail`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('modalId').textContent = data.id;
+                    document.getElementById('modalPatient').textContent = data.patient_name;
+                    document.getElementById('modalTime').textContent = data.prescription_time;
+                    document.getElementById('modalTotal').textContent = data.total_price ?? '—';
+                    const tbody = document.getElementById('modalItems');
+                    tbody.innerHTML = '';
+                    data.items.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+              <td>${item.drug_name}</td>
+              <td>${item.dosage}</td>
+              <td>${item.unit}</td>
+              <td>${item.quantity}</td>
+              <td>${item.packaging}</td>
+            `;
+                        tbody.appendChild(tr);
+                    });
+                    document.getElementById('prescriptionModal').style.display = 'block';
+                });
+        })
+    );
+
+    // 关闭 Modal
+    document.getElementById('modalClose').onclick = () => {
+        document.getElementById('prescriptionModal').style.display = 'none';
+    };
+    window.onclick = e => {
+        if (e.target.id === 'prescriptionModal') {
+            e.target.style.display = 'none';
+        }
+    };
+</script>
+{% endblock %}
