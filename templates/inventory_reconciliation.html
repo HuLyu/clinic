@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('inventory_page') }}">库管主页</a></li>
+        <li class="breadcrumb-item active" aria-current="page">今日对账</li>
+    </ol>
+</nav>
+
+<h2>今日对账</h2>
+<p>日期：{{ date }}</p>
+<table class="table table-bordered w-50">
+    <tr>
+        <th>应收账款</th>
+        <td>{{ total_receivable }}</td>
+    </tr>
+    <tr>
+        <th>利润</th>
+        <td>{{ total_profit }}</td>
+    </tr>
+</table>
+{% endblock %}

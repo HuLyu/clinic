@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('cashier_page') }}">收银主页</a></li>
+        <li class="breadcrumb-item active" aria-current="page">收入对账</li>
+    </ol>
+</nav>
+
+<h2>收入对账</h2>
+
+<h4>按天汇总</h4>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th>日期</th>
+            <th>总收入</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for date, amount in daily %}
+        <tr>
+            <td>{{ date }}</td>
+            <td>{{ amount }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4>收入明细</h4>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>记录ID</th>
+            <th>处方ID</th>
+            <th>患者</th>
+            <th>总价</th>
+            <th>总成本</th>
+            <th>收入</th>
+            <th>日期</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in records %}
+        <tr>
+            <td>{{ r.id }}</td>
+            <td><a href="{{ url_for('prescription_detail', prescription_id=r.prescription_id) }}">{{ r.prescription_id
+                    }}</a></td>
+            <td>{{ r.prescription.patient.name }}</td>
+            <td>{{ r.total_price }}</td>
+            <td>{{ r.total_cost }}</td>
+            <td>{{ r.revenue }}</td>
+            <td>{{ r.date }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

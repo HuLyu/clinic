@@ -2,6 +2,7 @@
 {% block content %}
 <h2>欢迎，护士 {{ current_user.username }}</h2>
 <ul>
+    <li><a href="{{ url_for('nurse_prescriptions') }}">查看处方信息</a></li>
     <li><a href="#">查看今天的预约</a></li>
     <li><a href="#">更新患者基本信息</a></li>
     <li><a href="#">记录生命体征</a></li>

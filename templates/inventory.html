@@ -1,6 +1,14 @@
 <!-- templates/inventory.html -->
 {% extends 'base.html' %}
 {% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('inventory_page') }}">库管主页</a></li>
+        <li class="breadcrumb-item active" aria-current="page">管理药品库存</li>
+    </ol>
+</nav>
+
 <h2>库管页面</h2>
 <p><a href="{{ url_for('inventory_drugs') }}">管理药品库存</a></p>
+<p><a href="{{ url_for('inventory_reconciliation') }}" class="btn btn-primary">查看今日对账</a></p>
 {% endblock %}

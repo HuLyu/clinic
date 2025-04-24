@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('cashier_page') }}">收银主页</a></li>
+        <li class="breadcrumb-item active" aria-current="page">今日应收账款</li>
+    </ol>
+</nav>
+
+<h2>今日应收账款</h2>
+<p>日期：{{ date }}</p>
+<h3>{{ total_receivable }}</h3>
+{% endblock %}

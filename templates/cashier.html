@@ -1,10 +1,9 @@
+<!-- templates/cashier.html -->
 {% extends 'base.html' %}
 {% block content %}
-<h2>欢迎，收银员 {{ current_user.username }}</h2>
+<h2>收银页面</h2>
 <ul>
-    <li><a href="#">收费登记</a></li>
-    <li><a href="#">发票管理</a></li>
-    <li><a href="#">日结报表</a></li>
-    <li><a href="{{ url_for('cashier_charge') }}">处方收费</a></li> <!-- 新增 -->
+    <li><a href="{{ url_for('cashier_charge') }}">未缴费处方</a></li>
+    <li><a href="{{ url_for('cashier_reconciliation') }}">收入对账</a></li>
 </ul>
 {% endblock %}

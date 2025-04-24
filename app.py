@@ -1,8 +1,10 @@
 import os, json
 from datetime import datetime
+from datetime import date
 from decimal import Decimal
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from flask_login import (
     LoginManager,
     UserMixin,
@@ -104,6 +106,21 @@ class PrescriptionItem(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     prescription = db.relationship(
         "Prescription", backref=db.backref("items", lazy=True)
+    )
+
+
+class RevenueRecord(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    prescription_id = db.Column(
+        db.Integer, db.ForeignKey("prescription.id"), nullable=False
+    )
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date())
+    total_price = db.Column(db.Numeric(10, 2), nullable=False)
+    total_cost = db.Column(db.Numeric(10, 2), nullable=False)
+    revenue = db.Column(db.Numeric(10, 2), nullable=False)
+
+    prescription = db.relationship(
+        "Prescription", backref=db.backref("revenue_record", uselist=False)
     )
 
 
@@ -504,10 +521,104 @@ def cashier_charge_do(prescription_id):
     if current_user.role != "cashier":
         return "无权限访问", 403
     pres = Prescription.query.get_or_404(prescription_id)
+    if pres.is_paid:
+        flash(f"处方 #{prescription_id} 已标记为已缴费", "info")
+        return redirect(url_for("cashier_charge"))
+
+    # 标记已支付
     pres.is_paid = True
+
+    # 计算总成本
+    total_cost = Decimal("0.00")
+    for item in pres.items:
+        drug = Drug.query.filter_by(name=item.drug_name).first()
+        if drug:
+            total_cost += Decimal(drug.cost) * item.quantity
+
+    # 收入 = 总价 - 总成本
+    revenue_amount = pres.total_price - total_cost
+
+    # 写入对账表
+    record = RevenueRecord(
+        prescription_id=pres.id,
+        date=pres.prescription_time.date(),
+        total_price=pres.total_price,
+        total_cost=total_cost,
+        revenue=revenue_amount,
+    )
+    db.session.add(record)
     db.session.commit()
-    flash(f"处方 #{prescription_id} 标记为已缴费", "success")
+
+    flash(f"处方 #{pres.id} 标记为已缴费，收入：{revenue_amount}", "success")
     return redirect(url_for("cashier_charge"))
+
+
+@app.route("/nurse/prescriptions", methods=["GET", "POST"])
+@login_required
+def nurse_prescriptions():
+    if current_user.role != "nurse":
+        return "无权限访问", 403
+
+    # 支持 GET 和 POST 获取表单/查询参数
+    phone_last4 = request.values.get("phone_last4", "").strip()
+    today_only = request.values.get("today_only", "") == "1"
+
+    # 基础查询，关联 Patient
+    query = Prescription.query.join(Patient)
+
+    # 按手机号后四位过滤
+    if phone_last4:
+        query = query.filter(Patient.phone.endswith(phone_last4))
+
+    # 按日期过滤“仅今天”
+    if today_only:
+        today = date.today()
+        query = query.filter(db.func.date(Prescription.prescription_time) == today)
+
+    # 如果既未搜索，也未勾选“仅今天”，显示所有处方
+    prescs = query.all()
+    return render_template(
+        "nurse_prescriptions.html",
+        prescriptions=prescs,
+        phone_last4=phone_last4,
+        today_only=today_only,
+    )
+
+
+@app.route("/cashier/reconciliation", methods=["GET"])
+@login_required
+def cashier_reconciliation():
+    if current_user.role != "cashier":
+        return "无权限访问", 403
+    today = date.today()
+    total_receivable = db.session.query(func.sum(RevenueRecord.total_price)).filter(
+        RevenueRecord.date == today
+    ).scalar() or Decimal("0.00")
+    return render_template(
+        "cashier_reconciliation.html", date=today, total_receivable=total_receivable
+    )
+
+
+@app.route("/inventory/reconciliation", methods=["GET"])
+@login_required
+def inventory_reconciliation():
+    if current_user.role != "inventory":
+        return "无权限访问", 403
+    today = date.today()
+    # 当天应收账款（总价）
+    total_receivable = db.session.query(func.sum(RevenueRecord.total_price)).filter(
+        RevenueRecord.date == today
+    ).scalar() or Decimal("0.00")
+    # 当天利润
+    total_profit = db.session.query(func.sum(RevenueRecord.revenue)).filter(
+        RevenueRecord.date == today
+    ).scalar() or Decimal("0.00")
+    return render_template(
+        "inventory_reconciliation.html",
+        date=today,
+        total_receivable=total_receivable,
+        total_profit=total_profit,
+    )
 
 
 if __name__ == "__main__":
